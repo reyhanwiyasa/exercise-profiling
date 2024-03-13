@@ -24,21 +24,39 @@ public class StudentService {
     private StudentCourseRepository studentCourseRepository;
 
     public List<StudentCourse> getAllStudentsWithCourses() {
-        return studentCourseRepository.findAll();
+        List<Student> students = studentRepository.findAll();
+        List<StudentCourse> studentCourses = new ArrayList<>();
+        for (Student student : students) {
+            List<StudentCourse> studentCoursesByStudent = studentCourseRepository.findByStudentId(student.getId());
+            for (StudentCourse studentCourseByStudent : studentCoursesByStudent) {
+                StudentCourse studentCourse = new StudentCourse();
+                studentCourse.setStudent(student);
+                studentCourse.setCourse(studentCourseByStudent.getCourse());
+                studentCourses.add(studentCourse);
+            }
+        }
+        return studentCourses;
     }
 
     public Optional<Student> findStudentWithHighestGpa() {
-        return studentRepository.findTopByOrderByGpaDesc();
+        List<Student> students = studentRepository.findAll();
+        Student highestGpaStudent = null;
+        double highestGpa = 0.0;
+        for (Student student : students) {
+            if (student.getGpa() > highestGpa) {
+                highestGpa = student.getGpa();
+                highestGpaStudent = student;
+            }
+        }
+        return Optional.ofNullable(highestGpaStudent);
     }
 
     public String joinStudentNames() {
         List<Student> students = studentRepository.findAll();
-        StringBuilder result = new StringBuilder();
-        String coma = ", ";
+        String result = "";
         for (Student student : students) {
-            result.append(student.getName()).append(coma);
+            result += student.getName() + ", ";
         }
         return result.substring(0, result.length() - 2);
     }
 }
-
